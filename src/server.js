@@ -16,6 +16,10 @@ async function startServer() {
     const models=initModels(sequelize)
     const { User } = models;
 
+
+
+      await sequelize.sync({ alter: true }); 
+
     console.log('Database connection established successfully.');
  //  await sequelize.sync({ alter: true });  // Updates existing tables to match models (adds/changes columns without deleting data).
 
