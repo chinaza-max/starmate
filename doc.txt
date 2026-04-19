@@ -1,0 +1,1208 @@
+================================================================================
+CLEANING SERVICE MANAGEMENT API - COMPLETE DOCUMENTATION
+================================================================================
+Base URL: http://localhost:3000/api
+WebSocket URL: ws://localhost:3000
+
+All endpoints require JWT Bearer token in Authorization header except where noted.
+Format: Authorization: Bearer <token>
+
+================================================================================
+AUTHENTICATION ENDPOINTS (All Roles)
+================================================================================
+
+1. REGISTER USER
+   POST /api/auth/register
+   Description: Register a new user (Client, Staff, or Admin)
+   
+   Request Body:
+   {
+     "firstName": "John",
+     "lastName": "Doe",
+     "email": "john@example.com",
+     "password": "password123",
+     "role": "CLIENT" | "STAFF" | "ADMIN",
+     "address": "123 Main St" (optional, for CLIENT),
+     "companyName": "Company Name" (optional, for CLIENT),
+     "specialization": "Cleaning" (optional, for STAFF),
+     "hourlyRate": 25.00 (optional, for STAFF)
+   }
+   
+   Response (201):
+   {
+     "success": true,
+     "message": "User registered successfully",
+     "data": {
+       "id": "uuid",
+       "firstName": "John",
+       "lastName": "Doe",
+       "email": "john@example.com",
+       "role": "CLIENT",
+       "token": "jwt_token"
+     }
+   }
+
+2. LOGIN
+   POST /api/auth/login
+   Description: Login user (requires email verification)
+   
+   Request Body:
+   {
+     "email": "john@example.com",
+     "password": "password123"
+   }
+   
+   Response (200):
+   {
+     "success": true,
+     "message": "Login successful",
+     "data": {
+       "id": "uuid",
+       "firstName": "John",
+       "lastName": "Doe",
+       "email": "john@example.com",
+       "role": "CLIENT",
+       "token": "jwt_token"
+     }
+   }
+   
+   Error (403): Email not verified
+   Error (401): Invalid credentials
+
+3. SEND OTP
+   POST /api/auth/send-otp
+   Description: Send OTP for email verification
+   
+   Request Body:
+   {
+     "email": "john@example.com"
+   }
+   
+   Response (200):
+   {
+     "success": true,
+     "message": "OTP sent to your email"
+   }
+
+4. VERIFY OTP
+   POST /api/auth/verify-otp
+   Description: Verify email with OTP
+   
+   Request Body:
+   {
+     "email": "john@example.com",
+     "otp": "123456"
+   }
+   
+   Response (200):
+   {
+     "success": true,
+     "message": "Email verified successfully"
+   }
+
+5. GET CURRENT USER
+   GET /api/auth/me
+   Description: Get current authenticated user profile
+   Auth: Required
+   
+   Response (200):
+   {
+     "success": true,
+     "data": {
+       "id": "uuid",
+       "firstName": "John",
+       "lastName": "Doe",
+       "email": "john@example.com",
+       "role": "CLIENT",
+       "isEmailVerified": true,
+       "Client": { ... } (if CLIENT),
+       "Staff": { ... } (if STAFF)
+     }
+   }
+
+================================================================================
+ADMIN ENDPOINTS
+================================================================================
+
+STATISTICS
+----------
+
+6. GET ADMIN STATISTICS
+   GET /api/statistics/admin
+   Auth: Admin only
+   
+   Response (200):
+   {
+     "success": true,
+     "data": {
+       "overview": {
+         "totalClients": 50,
+         "totalStaff": 10,
+         "totalQuotes": 100,
+         "totalBookings": 75,
+         "totalTasks": 200,
+         "totalInvoices": 60,
+         "totalCustomRequests": 25
+       },
+       "revenue": {
+         "totalRevenue": 50000.00,
+         "pendingRevenue": 10000.00
+       },
+       "quotes": {
+         "total": 100,
+         "accepted": 75,
+         "pending": 25
+       },
+       "bookings": {
+         "total": 75,
+         "completed": 50,
+         "inProgress": 15
+       },
+       "tasks": {
+         "total": 200,
+         "completed": 150,
+         "pending": 50
+       },
+       "customRequests": {
+         "total": 25,
+         "pending": 10
+       },
+       "recentActivity": {
+         "bookings": 10,
+         "quotes": 15
+       }
+     }
+   }
+
+SERVICES MANAGEMENT
+-------------------
+
+7. CREATE SERVICE
+   POST /api/services
+   Auth: Admin only
+   
+   Request Body:
+   {
+     "name": "Deep Cleaning",
+     "description": "Complete deep cleaning service",
+     "basePrice": 150.00
+   }
+   
+   Response (201):
+   {
+     "success": true,
+     "message": "Service created successfully",
+     "data": {
+       "id": "uuid",
+       "name": "Deep Cleaning",
+       "description": "Complete deep cleaning service",
+       "basePrice": 150.00,
+       "createdAt": "2024-01-01T00:00:00.000Z",
+       "updatedAt": "2024-01-01T00:00:00.000Z"
+     }
+   }
+
+8. GET ALL SERVICES
+   GET /api/services
+   Auth: Required
+   
+   Response (200):
+   {
+     "success": true,
+     "data": [
+       {
+         "id": "uuid",
+         "name": "Deep Cleaning",
+         "description": "Complete deep cleaning service",
+         "basePrice": 150.00
+       }
+     ]
+   }
+
+9. GET SERVICE BY ID
+   GET /api/services/:id
+   Auth: Required
+   
+   Response (200):
+   {
+     "success": true,
+     "data": {
+       "id": "uuid",
+       "name": "Deep Cleaning",
+       "description": "Complete deep cleaning service",
+       "basePrice": 150.00
+     }
+   }
+
+10. UPDATE SERVICE
+    PUT /api/services/:id
+    Auth: Admin only
+    
+    Request Body:
+    {
+      "name": "Updated Name" (optional),
+      "description": "Updated description" (optional),
+      "basePrice": 200.00 (optional)
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Service updated successfully",
+      "data": { ... }
+    }
+
+11. DELETE SERVICE
+    DELETE /api/services/:id
+    Auth: Admin only
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Service deleted successfully"
+    }
+
+STAFF MANAGEMENT
+----------------
+
+12. GET ALL STAFF
+    GET /api/staff
+    Auth: Admin only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [
+        {
+          "id": "uuid",
+          "specialization": "Cleaning",
+          "hourlyRate": 25.00,
+          "profilePicture": "uploads/staff-profiles/staff-123.jpg",
+          "User": {
+            "id": "uuid",
+            "firstName": "Jane",
+            "lastName": "Smith",
+            "email": "jane@example.com"
+          }
+        }
+      ]
+    }
+
+13. QUERY STAFF
+    GET /api/staff/query
+    Auth: Admin only
+    Query Parameters:
+    - specialization: Filter by specialization
+    - minHourlyRate: Minimum hourly rate
+    - maxHourlyRate: Maximum hourly rate
+    - search: Search by name or email
+    
+    Example: /api/staff/query?specialization=Cleaning&minHourlyRate=20&search=Jane
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+14. GET STAFF BY ID
+    GET /api/staff/:id
+    Auth: Admin only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": {
+        "id": "uuid",
+        "specialization": "Cleaning",
+        "hourlyRate": 25.00,
+        "profilePicture": "uploads/staff-profiles/staff-123.jpg",
+        "User": { ... }
+      }
+    }
+
+15. UPDATE STAFF HOURLY RATE
+    PUT /api/staff/amount
+    Auth: Admin only
+    
+    Request Body:
+    {
+      "staffId": "uuid",
+      "hourlyRate": 30.00
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Staff hourly rate updated successfully",
+      "data": { ... }
+    }
+
+16. UPLOAD STAFF PROFILE PICTURE
+    POST /api/staff/:id/profile-picture
+    Auth: Required
+    Content-Type: multipart/form-data
+    
+    Form Data:
+    - profilePicture: (file) - Image file (max 5MB, jpeg/jpg/png/gif)
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Profile picture uploaded successfully",
+      "data": {
+        "profilePicture": "uploads/staff-profiles/staff-123.jpg",
+        "url": "/api/staff/:id/profile-picture"
+      }
+    }
+
+17. GET STAFF PROFILE PICTURE
+    GET /api/staff/:id/profile-picture
+    Auth: Not required
+    
+    Response (200): Image file
+    Content-Type: image/jpeg (or appropriate type)
+
+STAFF AVAILABILITY
+------------------
+
+18. GET STAFF AVAILABILITY
+    GET /api/staff-availability/availability
+    Auth: Admin only
+    Query Parameters:
+    - staffId: Filter by specific staff (optional)
+    - startDate: Start date for timeline (optional)
+    - endDate: End date for timeline (optional)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [
+        {
+          "staff": {
+            "id": "uuid",
+            "specialization": "Cleaning",
+            "hourlyRate": 25.00,
+            "profilePicture": "path/to/image.jpg",
+            "user": {
+              "id": "uuid",
+              "firstName": "Jane",
+              "lastName": "Smith",
+              "email": "jane@example.com"
+            }
+          },
+          "status": "BUSY" | "AVAILABLE",
+          "currentTasks": 2,
+          "upcomingTasks": 5,
+          "totalTasks": 20,
+          "timeline": [
+            {
+              "id": "uuid",
+              "title": "Task Title",
+              "description": "Task description",
+              "status": "ASSIGNED",
+              "startTime": "2024-01-01T09:00:00.000Z",
+              "endTime": "2024-01-01T17:00:00.000Z",
+              "booking": {
+                "id": "uuid",
+                "bookingDate": "2024-01-01T00:00:00.000Z",
+                "endDate": "2024-01-01T23:59:59.000Z",
+                "status": "IN_PROGRESS"
+              }
+            }
+          ],
+          "bookings": [ ... ]
+        }
+      ]
+    }
+
+19. GET STAFF TIMELINE
+    GET /api/staff-availability/timeline/:staffId
+    Auth: Admin only
+    Query Parameters:
+    - startDate: Start date (optional)
+    - endDate: End date (optional)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": {
+        "staff": { ... },
+        "tasks": [ ... ],
+        "bookings": [ ... ]
+      }
+    }
+
+QUOTES MANAGEMENT
+-----------------
+
+20. CREATE QUOTE
+    POST /api/quotes
+    Auth: Admin only
+    
+    Request Body:
+    {
+      "clientId": "uuid",
+      "items": [
+        {
+          "itemId": "uuid",
+          "quantity": 2
+        }
+      ],
+      "serviceCharge": 10.00,
+      "discount": 5.00,
+      "expiryDate": "2024-12-31T23:59:59.000Z"
+    }
+    
+    Response (201):
+    {
+      "success": true,
+      "data": {
+        "id": "uuid",
+        "quoteNumber": "QT-1234567890",
+        "subtotal": 300.00,
+        "serviceCharge": 10.00,
+        "discount": 5.00,
+        "totalAmount": 305.00,
+        "status": "PENDING",
+        "Items": [ ... ],
+        "Client": { ... }
+      }
+    }
+
+21. GET QUOTES
+    GET /api/quotes
+    Auth: Required (Admin sees all, Client sees only their quotes)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+22. SEND QUOTE
+    POST /api/quotes/:id/send
+    Auth: Admin only
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Quote sent successfully"
+    }
+
+23. ACCEPT QUOTE
+    POST /api/quotes/:id/accept
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Quote accepted",
+      "data": { ... }
+    }
+
+BOOKINGS MANAGEMENT
+-------------------
+
+24. CONVERT QUOTE TO BOOKING
+    POST /api/bookings/convert
+    Auth: Admin only
+    
+    Request Body:
+    {
+      "quoteId": "uuid",
+      "bookingDate": "2024-01-15T09:00:00.000Z",
+      "notes": "Special instructions"
+    }
+    
+    Response (201):
+    {
+      "success": true,
+      "data": {
+        "id": "uuid",
+        "bookingDate": "2024-01-15T09:00:00.000Z",
+        "status": "SCHEDULED",
+        "Quote": { ... },
+        "Invoice": { ... }
+      }
+    }
+
+25. GET BOOKINGS
+    GET /api/bookings
+    Auth: Required (Admin sees all, Client/Staff see their own)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [
+        {
+          "id": "uuid",
+          "bookingDate": "2024-01-15T09:00:00.000Z",
+          "endDate": "2024-01-15T17:00:00.000Z",
+          "status": "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED",
+          "notes": "Special instructions",
+          "Quote": { ... },
+          "Tasks": [
+            {
+              "id": "uuid",
+              "title": "Task Title",
+              "description": "Task description",
+              "status": "PENDING" | "ASSIGNED" | "COMPLETED",
+              "startTime": "2024-01-15T09:00:00.000Z",
+              "endTime": "2024-01-15T17:00:00.000Z",
+              "Staff": [ ... ]
+            }
+          ],
+          "Invoice": { ... },
+          "Client": { ... }
+        }
+      ]
+    }
+
+26. GET BOOKING HISTORY
+    GET /api/bookings/history
+    Auth: Required (Client/Staff see their own history)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ] // Only COMPLETED and CANCELLED bookings
+    }
+
+27. ADD TASK TO BOOKING
+    POST /api/bookings/:bookingId/tasks
+    Auth: Admin only
+    
+    Request Body:
+    {
+      "title": "Task Title",
+      "description": "Task description",
+      "startTime": "2024-01-15T09:00:00.000Z" (optional),
+      "endTime": "2024-01-15T17:00:00.000Z" (optional)
+    }
+    
+    Response (201):
+    {
+      "success": true,
+      "message": "Task added to booking successfully",
+      "data": {
+        "id": "uuid",
+        "title": "Task Title",
+        "description": "Task description",
+        "status": "PENDING",
+        "Booking": { ... }
+      }
+    }
+
+28. ASSIGN STAFF TO TASK
+    POST /api/bookings/tasks/:taskId/assign-staff
+    Auth: Admin only
+    Note: Staff must be assigned to at least one task in the booking first
+    
+    Request Body:
+    {
+      "staffId": "uuid"
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Staff assigned to task successfully",
+      "data": {
+        "id": "uuid",
+        "title": "Task Title",
+        "status": "ASSIGNED",
+        "Staff": [
+          {
+            "id": "uuid",
+            "specialization": "Cleaning",
+            "User": { ... }
+          }
+        ],
+        "Booking": { ... }
+      }
+    }
+
+29. REMOVE STAFF FROM BOOKING
+    DELETE /api/bookings/:bookingId/staff/:staffId
+    Auth: Admin only
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Staff removed from booking successfully"
+    }
+
+TASKS MANAGEMENT
+----------------
+
+30. GET TASKS
+    GET /api/tasks
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+31. UPDATE TASK STATUS
+    PUT /api/tasks/:id/status
+    Auth: Required
+    
+    Request Body:
+    {
+      "status": "PENDING" | "ASSIGNED" | "COMPLETED"
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Task status updated",
+      "data": { ... }
+    }
+
+CUSTOM REQUESTS
+---------------
+
+32. GET CUSTOM REQUESTS
+    GET /api/custom-requests
+    Auth: Required (Admin sees all, Client sees only their own)
+    Query Parameters:
+    - page: Page number (default: 1)
+    - limit: Items per page (default: 10)
+    - status: Filter by status (PENDING, IN_PROGRESS, RESOLVED, CLOSED)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [
+        {
+          "id": "uuid",
+          "subject": "Request Subject",
+          "message": "Request message",
+          "status": "PENDING",
+          "response": null,
+          "Client": {
+            "User": { ... }
+          }
+        }
+      ],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 25,
+        "pages": 3
+      }
+    }
+
+33. GET CUSTOM REQUEST BY ID
+    GET /api/custom-requests/:id
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": { ... }
+    }
+
+34. UPDATE CUSTOM REQUEST
+    PUT /api/custom-requests/:id
+    Auth: Admin only
+    
+    Request Body:
+    {
+      "status": "RESOLVED" (optional),
+      "response": "Admin response" (optional)
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Request updated successfully",
+      "data": { ... }
+    }
+
+INVOICES MANAGEMENT
+------------------
+
+35. CREATE INVOICE
+    POST /api/invoices
+    Auth: Required
+    
+    Request Body:
+    {
+      "bookingId": "uuid",
+      "amountDue": 500.00 (optional, uses quote total if not provided),
+      "dueDate": "2024-02-01T00:00:00.000Z" (optional, defaults to 7 days)
+    }
+    
+    Response (201):
+    {
+      "success": true,
+      "message": "Invoice created successfully",
+      "data": {
+        "id": "uuid",
+        "invoiceNumber": "INV-1234567890",
+        "amountDue": 500.00,
+        "dueDate": "2024-02-01T00:00:00.000Z",
+        "status": "UNPAID",
+        "Booking": { ... }
+      }
+    }
+
+36. GET INVOICES
+    GET /api/invoices
+    Auth: Required (Admin sees all, Client sees only their own)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+37. GET INVOICE BY ID
+    GET /api/invoices/:id
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": { ... }
+    }
+
+38. DOWNLOAD INVOICE PDF
+    GET /api/invoices/:id/download
+    Auth: Required
+    
+    Response (200):
+    Content-Type: application/pdf
+    Content-Disposition: attachment; filename=invoice-INV-1234567890.pdf
+    (PDF file stream)
+
+39. SEND INVOICE VIA EMAIL
+    POST /api/invoices/:id/send-email
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Invoice sent via email successfully"
+    }
+
+DEVICE TOKENS (PUSH NOTIFICATIONS)
+----------------------------------
+
+40. SAVE DEVICE TOKEN
+    POST /api/device-tokens
+    Auth: Required
+    
+    Request Body:
+    {
+      "token": "fcm_device_token",
+      "platform": "IOS" | "ANDROID" | "WEB"
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Device token saved successfully",
+      "data": {
+        "id": "uuid",
+        "token": "fcm_device_token",
+        "platform": "IOS",
+        "isActive": true
+      }
+    }
+
+41. UPDATE DEVICE TOKEN
+    PUT /api/device-tokens
+    Auth: Required
+    
+    Request Body:
+    {
+      "token": "fcm_device_token",
+      "platform": "ANDROID" (optional),
+      "isActive": false (optional)
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Device token updated successfully",
+      "data": { ... }
+    }
+
+42. DELETE DEVICE TOKEN
+    DELETE /api/device-tokens/:token
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Device token deleted successfully"
+    }
+
+43. GET USER TOKENS
+    GET /api/device-tokens
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+================================================================================
+CLIENT ENDPOINTS
+================================================================================
+
+QUOTES
+------
+
+44. GET MY QUOTES
+    GET /api/quotes
+    Auth: Client only
+    Description: Get all quotes for the authenticated client
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [
+        {
+          "id": "uuid",
+          "quoteNumber": "QT-1234567890",
+          "totalAmount": 305.00,
+          "status": "PENDING" | "SENT" | "ACCEPTED" | "REJECTED" | "CONVERTED",
+          "Items": [ ... ],
+          "Client": { ... }
+        }
+      ]
+    }
+
+45. ACCEPT QUOTE
+    POST /api/quotes/:id/accept
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Quote accepted",
+      "data": { ... }
+    }
+
+BOOKINGS
+--------
+
+46. GET MY BOOKINGS
+    GET /api/bookings
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ] // All bookings for the client
+    }
+
+47. GET MY BOOKING HISTORY
+    GET /api/bookings/history
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ] // Only COMPLETED and CANCELLED bookings
+    }
+
+CUSTOM REQUESTS
+---------------
+
+48. CREATE CUSTOM REQUEST
+    POST /api/custom-requests
+    Auth: Client only
+    
+    Request Body:
+    {
+      "subject": "Request Subject",
+      "message": "Request message details"
+    }
+    
+    Response (201):
+    {
+      "success": true,
+      "message": "Custom request created successfully",
+      "data": {
+        "id": "uuid",
+        "subject": "Request Subject",
+        "message": "Request message details",
+        "status": "PENDING",
+        "Client": { ... }
+      }
+    }
+
+49. GET MY CUSTOM REQUESTS
+    GET /api/custom-requests
+    Auth: Client only
+    Query Parameters:
+    - page: Page number (default: 1)
+    - limit: Items per page (default: 10)
+    - status: Filter by status (optional)
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ],
+      "pagination": { ... }
+    }
+
+50. GET MY CUSTOM REQUEST BY ID
+    GET /api/custom-requests/:id
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": { ... }
+    }
+
+INVOICES
+--------
+
+51. GET MY INVOICES
+    GET /api/invoices
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+52. GET MY INVOICE BY ID
+    GET /api/invoices/:id
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": { ... }
+    }
+
+53. DOWNLOAD MY INVOICE PDF
+    GET /api/invoices/:id/download
+    Auth: Client only
+    
+    Response (200): PDF file
+
+54. REQUEST INVOICE EMAIL
+    POST /api/invoices/:id/send-email
+    Auth: Client only
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Invoice sent via email successfully"
+    }
+
+SERVICES
+--------
+
+55. GET ALL SERVICES
+    GET /api/services
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+56. GET SERVICE BY ID
+    GET /api/services/:id
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": { ... }
+    }
+
+================================================================================
+STAFF ENDPOINTS
+================================================================================
+
+STATISTICS
+----------
+
+57. GET STAFF STATISTICS
+    GET /api/statistics/staff
+    Auth: Staff only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": {
+        "staff": {
+          "id": "uuid",
+          "specialization": "Cleaning",
+          "hourlyRate": 25.00
+        },
+        "tasks": {
+          "total": 20,
+          "completed": 15,
+          "pending": 3,
+          "inProgress": 2
+        },
+        "bookings": {
+          "total": 10,
+          "completed": 8
+        },
+        "earnings": {
+          "estimated": 2000.00,
+          "hourlyRate": 25.00
+        }
+      }
+    }
+
+BOOKINGS
+--------
+
+58. GET MY ASSIGNED BOOKINGS
+    GET /api/bookings
+    Auth: Staff only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ] // Bookings where staff is assigned to tasks
+    }
+
+59. GET MY BOOKING HISTORY
+    GET /api/bookings/history
+    Auth: Staff only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ] // Only COMPLETED and CANCELLED bookings where staff was assigned
+    }
+
+TASKS
+-----
+
+60. GET MY TASKS
+    GET /api/tasks
+    Auth: Staff only
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ] // Tasks assigned to the staff
+    }
+
+61. UPDATE TASK STATUS
+    PUT /api/tasks/:id/status
+    Auth: Staff only (can only update their own tasks)
+    
+    Request Body:
+    {
+      "status": "ASSIGNED" | "COMPLETED"
+    }
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Task status updated",
+      "data": { ... }
+    }
+
+SERVICES
+--------
+
+62. GET ALL SERVICES
+    GET /api/services
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": [ ... ]
+    }
+
+63. GET SERVICE BY ID
+    GET /api/services/:id
+    Auth: Required
+    
+    Response (200):
+    {
+      "success": true,
+      "data": { ... }
+    }
+
+PROFILE PICTURE
+---------------
+
+64. UPLOAD MY PROFILE PICTURE
+    POST /api/staff/:id/profile-picture
+    Auth: Staff only (can only upload their own)
+    Content-Type: multipart/form-data
+    
+    Form Data:
+    - profilePicture: (file) - Image file
+    
+    Response (200):
+    {
+      "success": true,
+      "message": "Profile picture uploaded successfully",
+      "data": {
+        "profilePicture": "uploads/staff-profiles/staff-123.jpg",
+        "url": "/api/staff/:id/profile-picture"
+      }
+    }
+
+================================================================================
+WEBSOCKET CHAT ENDPOINTS
+================================================================================
+
+Connection: Connect to ws://localhost:3000
+Authentication: Pass JWT token in handshake:
+  - socket.io client: socket.connect(url, { auth: { token: 'jwt_token' } })
+  - Or in headers: Authorization: Bearer <token>
+
+EVENTS (Client Side)
+--------------------
+
+65. SEND MESSAGE
+    Event: send_message
+    Description: Send a message (Client to Admin or Admin reply)
+    
+    Emit:
+    {
+      "receiverId": "uuid" (optional for client, required for admin),
+      "message": "Message text",
+      "messageType": "COMPLAINT" | "INQUIRY" | "GENERAL" | "REPLY" (optional)
+    }
+    
+    Listen: message_sent
+    Response:
+    {
+      "id": "uuid",
+      "senderId": "uuid",
+      "receiverId": "uuid",
+      "message": "Message text",
+      "messageType": "COMPLAINT",
+      "isRead": false,
+      "sender": {
+        "id": "uuid",
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john@example.com",
+        "role": "CLIENT"
+      },
+      "receiver": { ... },
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+
+66. RECEIVE NEW MESSAGE
+    Event: new_message
+    Description: Receive a new messa
