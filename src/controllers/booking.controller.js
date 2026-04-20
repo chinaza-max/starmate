@@ -1,5 +1,7 @@
 const { sendPushNotificationToUser } = require('../services/pushNotification.service');
-const { Op } = require('sequelize');
+//const { Op } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
+
 const initModels = require('../models');
 const sequelize = require('../config/db.config');
 const models = initModels(sequelize);
