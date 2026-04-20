@@ -28,7 +28,7 @@ async function startServer() {
 //await sequelize.sync({ force: true });  // Drops all tables and recreates them (deletes all existing data).
 
 // await sequelize.sync({ force: false }); // Default behavior; creates tables if missing but leaves existing ones unchanged.
-    console.log('Database models synchronized.');
+   // console.log('Database models synchronized.');
 
 
      const adminEmail = 'admin@gmail.com';
