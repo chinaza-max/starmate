@@ -16,6 +16,7 @@ const deviceTokenRoutes = require('./routes/deviceToken.routes');
 const messageRoutes = require('./routes/message.routes');
 const staffAvailabilityRoutes = require('./routes/staffAvailability.routes');
 const itemRoutes = require('./routes/item.routes');
+const clientRoutes = require('./routes/client.routes');
 
 
 const app = express();
@@ -82,6 +83,7 @@ app.use('/api/device-tokens', deviceTokenRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/staff-availability', staffAvailabilityRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/clients', clientRoutes);
 
 // Root route
 app.get('/', (req, res) => {
