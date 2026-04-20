@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const clientController = require('../controllers/clientController');
-const { authenticate, authorize } = require('../middleware/auth');
-//const bookingController = require('../controllers/booking.controller');
+const { protect, authorize } = require('../middleware/auth.middleware');
 
-router.get('/', authenticate, authorize('ADMIN'), clientController.getAll);
+router.get('/', protect, authorize('ADMIN'), clientController.getAll);
 
 module.exports = router;
