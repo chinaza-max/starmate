@@ -45,7 +45,7 @@ exports.register = async (req, res) => {
         username:firstName,
         firstName: firstName,
         password,
-        loginUrl: 'https://yourapp.com/staff/login',
+        loginUrl: `${process.env.APP_URL}/staff/login`,
       });
     }
 
