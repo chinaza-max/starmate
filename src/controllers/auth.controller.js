@@ -32,11 +32,12 @@ exports.register = async (req, res) => {
       email,
       password,
       role,
-      phone
+      phone,
+      isEmailVerified: true
     });
 
     if (role === 'CLIENT') {
-      await Client.create({ userId: user.id, address, companyName ,isEmailVerified:true});
+      await Client.create({ userId: user.id, address, companyName });
     } else if (role === 'STAFF') {
       await Staff.create({ userId: user.id, specialization, hourlyRate ,isEmailVerified:true});
 
