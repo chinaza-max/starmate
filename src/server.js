@@ -18,7 +18,7 @@ async function startServer() {
 
 
 
-      await sequelize.sync({ alter: true }); 
+   //   await sequelize.sync({ alter: true }); 
 
     console.log('Database connection established successfully.');
  //  await sequelize.sync({ alter: true });  // Updates existing tables to match models (adds/changes columns without deleting data).
